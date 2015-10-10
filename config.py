@@ -1,5 +1,5 @@
 
-protocolVersion = '1.0'
+protocolVersion = '1.1'
 
 # a map from the remote players key to the key of "player 2"
 keyMap = {
@@ -10,7 +10,6 @@ keyMap = {
     # 'Escape': 'Escape',
 }
 listenWindow = 'Crypt of the NecroDancer'
-eventAttributeList = 'Key Time'.split()  # which attrs get sent over the network
 
 
 

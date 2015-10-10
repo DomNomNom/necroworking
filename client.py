@@ -7,6 +7,7 @@ import json
 import socket
 import threading
 import win32com.client
+import datetime
 
 import config
 
@@ -18,17 +19,21 @@ clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 clientSocket.connect(config.remoteAddress)
 
 
+epoch = datetime.datetime.utcfromtimestamp(0)
+def unixTimeMillis():
+    return (datetime.datetime.now() - epoch).total_seconds() * 1000.0
 
 def handleNetworkMessage(message):
     event = json.loads(message)
-    assert "Time" in event
+    assert "time" in event
     assert event['v'] == config.protocolVersion
 
     # print 'message received:', message
 
-    mappedKey = config.keyMap[event['Key']]
-    print "pushing mapped key:", mappedKey
+    mappedKey = config.keyMap[event['~key']]
     shell.SendKeys(mappedKey)
+    lag = int(unixTimeMillis() - event['time'])
+    print "{:>3}ms lag    pushing mapped key: {}".format(lag, mappedKey)
 
 def listenToSocket(clientSocket):
     print 'Connected to server.'
@@ -42,13 +47,14 @@ def listenToSocket(clientSocket):
 def OnKeyboardEvent(event):
 
     if event.WindowName == config.listenWindow and event.Key in config.keyMap:
-        strippedDownEvent = {
-            attrName: event.__getattribute__(attrName)
-            for attrName in config.eventAttributeList
+        message = {
+            'time': unixTimeMillis(),
+            'v': config.protocolVersion,
+            '~key': event.Key,  # having the '~' here is a hack to get consistent ordering
         }
-        strippedDownEvent['v'] = config.protocolVersion
-        print 'sending key:', strippedDownEvent
-        clientSocket.send(json.dumps(strippedDownEvent))
+        message = json.dumps(message, sort_keys=True)
+        print 'sending message:', message
+        clientSocket.send(message)
 
 
     # return True to pass the event to other handlers

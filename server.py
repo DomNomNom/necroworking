@@ -22,8 +22,8 @@ def manageClient(clientSocket, address):
         # clientSocket.send(message)
         for other in clients:
             if other != address:
-                print '{} \t <-- {}'.format(other, message)
                 clients[other].send(message)
+                print '{} \t <-- {}'.format(other, message)
         message = clientSocket.recv(config.packetSize)
 
     clientSocket.send("you send an empty message. goodbye.")
