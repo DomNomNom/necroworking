@@ -8,6 +8,7 @@ import socket
 import threading
 import win32com.client
 import datetime
+import ctypes
 
 import config
 
@@ -19,11 +20,24 @@ clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 clientSocket.connect(config.remoteAddress)
 
 
+
+user32dll = ctypes.WinDLL("User32.dll")
+def isToggledOn():
+    VK_CAPITAL = 0x14
+    VK_SCROLL = 0x91
+    return user32dll.GetKeyState(VK_SCROLL)
+    return user32dll.GetKeyState(VK_CAPITAL)
+
 epoch = datetime.datetime.utcfromtimestamp(0)
 def unixTimeMillis():
     return (datetime.datetime.now() - epoch).total_seconds() * 1000.0
 
 def handleNetworkMessage(message):
+
+    if not isToggledOn():
+        print 'mute (scroll lock) is on: ignoring network message'
+        return
+
     event = json.loads(message)
     assert "time" in event
     assert event['v'] == config.protocolVersion
@@ -47,6 +61,10 @@ def listenToSocket(clientSocket):
 def OnKeyboardEvent(event):
 
     if event.WindowName == config.listenWindow and event.Key in config.keyMap:
+        if not isToggledOn():
+            print 'mute (scroll lock) is on: not sending'
+            return True
+
         message = {
             'time': unixTimeMillis(),
             'v': config.protocolVersion,
