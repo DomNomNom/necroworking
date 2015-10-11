@@ -18,17 +18,18 @@ def manageClient(clientSocket, address):
 
     message = clientSocket.recv(config.packetSize)
     while message.strip():
-        print '{} \t --> {}'.format(address, message)
+        print '{} \t --> {}'.format(address, repr(message))
         # clientSocket.send(message)
         for other in clients:
             if other != address:
                 clients[other].send(message)
-                print '{} \t <-- {}'.format(other, message)
+                print '{} \t <-- {}'.format(other, repr(message))
         message = clientSocket.recv(config.packetSize)
 
     clientSocket.send("you send an empty message. goodbye.")
     clientSocket.close()
     del clients[address]
+    print "client disconnected:", address
 
 
 

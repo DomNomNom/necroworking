@@ -7,19 +7,19 @@ keyMap = {
     'Right': 'l',
     'Up': 'i',
     'Down': 'k',
-    # 'Escape': 'Escape',
+    'Enter': 'Enter',
 }
 listenWindow = 'Crypt of the NecroDancer'
 
 
 
 port = 1597
-packetSize = 2048
+packetSize = 256
 
 
 
 # things only relevant for the client
-remoteAddress = ('localhost', port)
+remoteAddress = ('58.84.227.113', port)
 
 #  things only relevant for the server
 serverBinding = ('0.0.0.0', port)

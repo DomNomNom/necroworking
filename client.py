@@ -1,14 +1,14 @@
-
-
 import pyHook
 import pythoncom
+import win32com.client
+
 import sys
 import json
 import socket
 import threading
-import win32com.client
 import datetime
 import ctypes
+import traceback
 
 import config
 
@@ -25,7 +25,7 @@ user32dll = ctypes.WinDLL("User32.dll")
 def isToggledOn():
     VK_CAPITAL = 0x14
     VK_SCROLL = 0x91
-    return user32dll.GetKeyState(VK_SCROLL)
+    return user32dll.GetKeyState(VK_SCROLL)  # check whether scroll lock is on.
     return user32dll.GetKeyState(VK_CAPITAL)
 
 epoch = datetime.datetime.utcfromtimestamp(0)
@@ -53,7 +53,11 @@ def listenToSocket(clientSocket):
     print 'Connected to server.'
     message = clientSocket.recv(config.packetSize)
     while message.strip():
-        handleNetworkMessage(message)
+        try:
+            for line in message.split('\n'):
+                handleNetworkMessage(line)
+        except:
+            traceback.print_exc(file=sys.stdout)
         message = clientSocket.recv(config.packetSize)
     clientSocket.close()
 
@@ -70,8 +74,8 @@ def OnKeyboardEvent(event):
             'v': config.protocolVersion,
             '~key': event.Key,  # having the '~' here is a hack to get consistent ordering
         }
-        message = json.dumps(message, sort_keys=True)
-        print 'sending message:', message
+        message = json.dumps(message, sort_keys=True) + '\n'
+        print 'sending message:', repr(message)
         clientSocket.send(message)
 
 
